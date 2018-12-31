@@ -1,5 +1,7 @@
 import re
-
+import pickle
+import datetime
+import os
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from src.bagOfWords import bagOfWords
@@ -72,8 +74,17 @@ def logisticRegrestion(X, y):
     y_test = y[:n-1]
     y_train = y[n:]
     clf = LogisticRegression(random_state=0, solver='lbfgs', multi_class = 'multinomial').fit(X_train, y_train)
+    file = str(datetime.datetime.now())
+    folder = "./model"
+    filepath = os.path.join(folder, file)
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    outfile = open(str(filepath), 'wb+')
+    pickle.dump(clf, outfile)
+    outfile.close()
     print(clf.predict(X_test))
     print(y_test)
+    print(clf.predict_proba(X_test))
     print(clf.score(X_train, y_train))
 
 def main():
