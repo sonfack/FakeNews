@@ -2,6 +2,8 @@ import nltk
 import pandas as pd
 import re
 from nltk.corpus import stopwords
+import csv
+from collections import defaultdict
 
 lemma = nltk.WordNetLemmatizer()
 
@@ -47,10 +49,33 @@ def removeStopWord(text):
 
     # get list of unique word
     splitText = list(set(splitText))
+
     # load stop words
     stop_words = stopwords.words('english')
+
     # Remove stop words
     filterWords = [re.sub('\W+',' ', word) for word in splitText if word not in stop_words]
     filterWords = ' '.join(filterWords).split()
 
     return filterWords
+
+
+
+def readFileSpecificColumn(file, numberOfLines):
+    columns = defaultdict(list)  # each value in each column is appended to a list
+    count = 0
+    with open(file) as f:
+        reader = csv.DictReader(f)  # read rows into a dictionary format
+        for row in reader:
+            if count < numberOfLines: # read a row as {column1: value1, column2: value2,...}
+                for (k, v) in row.items():  # go over each column name and value
+                    #columns[k].append(v)  # append the value into the appropriate list
+                    # based on column name k
+                    if k == "id" or k == "type":
+                        print(k,": ", v)
+                count = count + 1
+            else:
+                break
+
+
+#readFileSpecificColumn('../data/view.csv', 3)

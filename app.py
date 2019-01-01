@@ -5,7 +5,7 @@ import os
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from src.bagOfWords import bagOfWords
-from src.dataManip import readNews, lemmatizeText, removeStopWord, getCVSHeaders
+from src.dataManip import readNews, lemmatizeText, removeStopWord, getCVSHeaders, readFileSpecificColumn
 
 fakenews = readNews("./data/header.csv")
 def createCorpus():
@@ -35,7 +35,7 @@ Conspiracy Theory (tag conspiracy = 0): Sources that are well-known promoters of
 
 Hate News (tag hate): Sources that actively promote racism, misogyny, homophobia, and other forms of discrimination.
 
-Rumor Mill (tag rumor = 0): Sources that traffic in rumors, gossip, innuendo, and unverified claims.
+Rumor Mill (tag   = 0): Sources that traffic in rumors, gossip, innuendo, and unverified claims.
 
 Extreme Bias (tag bias): Sources that come from a particular point of view and may rely on propaganda, decontextualized 
 information, and opinions distorted as facts.
@@ -56,24 +56,27 @@ def labelType(listType):
     return labelType
 
 
-def testLR():
-    X, y = load_iris(return_X_y=True)
-    print(X)
-    print(y)
-    clf = LogisticRegression(random_state=0, solver='lbfgs', multi_class = 'multinomial').fit(X, y)
-    print(X[:2, :])
-    print(clf.predict(X[:2, :]))
-    print(clf.predict_proba(X[:2, :]))
-    print(clf.score(X, y))
+def testLR(X, numberToTest, modelfile):
+    X_test = X[:numberToTest]
+    folder = "./model"
+    filepath = os.path.join(folder, modelfile)
+    pickle_off = open(filepath, "rb")
+    clf = pickle.load(pickle_off)
+    print(clf.predict(X_test))
+    print(clf.predict_proba(X_test))
 
 def logisticRegrestion(X, y):
     N = len(X)
     n = N //3
-    X_test = X[:n-1]
+    X_test = X[:3]
+
     X_train = X[n:]
-    y_test = y[:n-1]
+
+    y_test = y[:3]
     y_train = y[n:]
+
     clf = LogisticRegression(random_state=0, solver='lbfgs', multi_class = 'multinomial').fit(X_train, y_train)
+
     file = str(datetime.datetime.now())
     folder = "./model"
     filepath = os.path.join(folder, file)
@@ -82,20 +85,29 @@ def logisticRegrestion(X, y):
     outfile = open(str(filepath), 'wb+')
     pickle.dump(clf, outfile)
     outfile.close()
+
     print(clf.predict(X_test))
     print(y_test)
     print(clf.predict_proba(X_test))
     print(clf.score(X_train, y_train))
 
 def main():
+
     #print(getCVSHeaders(fakenews))
     label = labelType(fakenews['type'])
-    print(label)
+
+    #print(label)
     corpus = createCorpus()
     vectorize = bagOfWords(corpus)
 
-    logisticRegrestion(vectorize, label)
+    testLR(vectorize, 5, "modelLR")
 
+    filecsv = "./data/header.csv"
+    readFileSpecificColumn(filecsv, 5)
+    exit(0)
+
+    logisticRegrestion(vectorize, label)
+    readFileSpecificColumn(filecsv, 3)
     #print(vectorize.shape)
     #print(vectorize)
 
