@@ -65,7 +65,7 @@ def testLR(X, numberToTest, modelfile):
     print(clf.predict(X_test))
     print(clf.predict_proba(X_test))
 
-def logisticRegrestion(X, y):
+def logisticRegrestion(X, y, vocabulary):
     N = len(X)
     n = N //3
     X_test = X[:3]
@@ -83,9 +83,10 @@ def logisticRegrestion(X, y):
     if not os.path.exists(folder):
         os.mkdir(folder)
     outfile = open(str(filepath), 'wb+')
-    pickle.dump(clf, outfile)
+    myModel = {'model':clf, 'vocabulary': vocabulary }
+    pickle.dump(myModel, outfile)
     outfile.close()
-
+    print(myModel['vocabulary'])
     print(clf.predict(X_test))
     print(y_test)
     print(clf.predict_proba(X_test))
@@ -98,16 +99,16 @@ def main():
 
     #print(label)
     corpus = createCorpus()
-    vectorize = bagOfWords(corpus)
+    vectorize, vocabulary = bagOfWords(corpus)
 
-    testLR(vectorize, 5, "modelLR")
+    #testLR(vectorize, 5, "modelLR")
 
     filecsv = "./data/header.csv"
-    readFileSpecificColumn(filecsv, 5)
-    exit(0)
+    #readFileSpecificColumn(filecsv, 5)
 
-    logisticRegrestion(vectorize, label)
-    readFileSpecificColumn(filecsv, 3)
+
+    logisticRegrestion(vectorize, label, vocabulary)
+    #readFileSpecificColumn(filecsv, 3)
     #print(vectorize.shape)
     #print(vectorize)
 
