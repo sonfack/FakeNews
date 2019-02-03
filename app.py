@@ -1,12 +1,39 @@
+import pandas as pd
 import re
 import pickle
 import datetime
 import os
-from sklearn.datasets import load_iris
+
+# Logistic Regression
 from sklearn.linear_model import LogisticRegression
+
+# Decission Tree
+from sklearn import tree
+from sklearn.metrics import confusion_matrix
+
 from src.bagOfWords import bagOfWords
 from src.dataManip import readNews, lemmatizeText, removeStopWord, getCVSHeaders, readFileSpecificColumn
+from src.tf_idf import tf_idf
 
+"""
+key google api : AIzaSyAHM2BO5oMzQ3QAnR_go6WxDMJ9TJGpJSE
+
+pip install google-api-python-client
+
+<script>
+  (function() {
+    var cx = '017411662308276300777:dhoerkg7vwi';
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
+  })();
+</script>
+<gcse:search></gcse:search>
+
+"""
 fakenews = readNews("./data/header.csv")
 def createCorpus():
     corpus = []
@@ -55,18 +82,21 @@ def labelType(listType):
             labelType.append(1)
     return labelType
 
-
+# Test Logistic regrestion
 def testLR(X, numberToTest, modelfile):
     X_test = X[:numberToTest]
     folder = "./model"
     filepath = os.path.join(folder, modelfile)
     pickle_off = open(filepath, "rb")
-    clf = pickle.load(pickle_off)
+    model = pickle.load(pickle_off)
+    clf = model['model']
     print(clf.predict(X_test))
     print(clf.predict_proba(X_test))
 
-def logisticRegrestion(X, y, vocabulary):
-    N = len(X)
+
+# Logistic regrestion
+def logisticRegrestion(X, y, vocabulary, extracteur):
+    N, col = X.shape
     n = N //3
     X_test = X[:3]
 
@@ -77,7 +107,7 @@ def logisticRegrestion(X, y, vocabulary):
 
     clf = LogisticRegression(random_state=0, solver='lbfgs', multi_class = 'multinomial').fit(X_train, y_train)
 
-    file = str(datetime.datetime.now())
+    file = "LogisticRegrestion"+"_"+extracteur+"_"+str(datetime.datetime.now())
     folder = "./model"
     filepath = os.path.join(folder, file)
     if not os.path.exists(folder):
@@ -92,8 +122,102 @@ def logisticRegrestion(X, y, vocabulary):
     print(clf.predict_proba(X_test))
     print(clf.score(X_train, y_train))
 
-def main():
+# Test decission tree
+def testDT(X_test, y_test, modelfile):
+    folder = "./model"
+    #filepath = os.path.join(folder, modelfile)
 
+    #pickle_off = open(filepath, "rb")
+    #clf = pickle.load(pickle_off)
+
+    filepath = os.path.join(folder, modelfile)
+    pickle_off = open(filepath, "rb")
+    model = pickle.load(pickle_off)
+    clf = model['model']
+    #vocabulary = model['vocabulary']
+
+
+
+
+
+    print(clf.score(X=X_test, y=y_test))
+    y_predict = clf.predict(X_test)
+    print(y_predict)
+    print(clf.predict_proba(X_test))
+    print(pd.DataFrame(
+        confusion_matrix(y_test, y_predict),
+        columns=['Predicted Fake', 'Predicted Not Fake'],
+        index=['True Fake', 'True Not Fake']
+    ))
+
+
+# Decission Tree
+def decissionTree(X,y, extracteur):
+    N, col = X.shape
+    n = N // 3
+    #X_test = X[:10]
+
+    X_train = X[n:]
+
+    #y_test = y[:10]
+    y_train = y[n:]
+
+
+    clf = tree.DecisionTreeClassifier()
+    clf = clf.fit(X=X_train, y=y_train)
+    file = "DecisionTree"+"_"+extracteur+"_"+str(datetime.datetime.now())
+    folder = "./model"
+    filepath = os.path.join(folder, file)
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    outfile = open(str(filepath), 'wb+')
+    myModel = {'model': clf, 'vocabulary': ""}
+    pickle.dump(myModel, outfile)
+    outfile.close()
+
+
+
+def main():
+    label = labelType(fakenews['type'])
+
+    corpus = createCorpus()
+    vectorizebow, vocabulary = bagOfWords(corpus)
+    vectorizetf = tf_idf(corpus)
+
+    X_testtf = vectorizetf[:10]
+    X_testbow = vectorizebow[:10]
+    y_test = label[:10]
+    print(y_test)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    testDT(X_testtf, y_test, "DecisionTree_tf")
+    print("******************************************")
+    testDT(X_testbow, y_test, "DecisionTree_bow")
+    print("******************************************")
+    testLR(X_testtf, 10, "LogisticRegrestion_tf")
+    print("******************************************")
+    testLR(X_testbow, 10, "LogisticRegrestion_bow")
+
+    '''
+    label = labelType(fakenews['type'])
+
+    corpus = createCorpus()
+    vectorizebow, vocabulary = bagOfWords(corpus)
+    vectorizetf = tf_idf(corpus)
+    decissionTree(vectorizebow, label, "bow")
+    decissionTree(vectorizetf, label, "tf")
+    logisticRegrestion(vectorizebow, label, vocabulary, "bow")
+    logisticRegrestion(vectorizetf, label, vocabulary, "tf")
+
+    
+    bel = labelType(fakenews['type'])
+    print(label[:10])
+
+    corpus = createCorpus()
+    vectorize, vocabulary = bagOfWords(corpus)
+    decissionTree(vectorize, label)
+    
+    #####################################################
+    
     #print(getCVSHeaders(fakenews))
     label = labelType(fakenews['type'])
 
@@ -111,7 +235,7 @@ def main():
     #readFileSpecificColumn(filecsv, 3)
     #print(vectorize.shape)
     #print(vectorize)
-
+    '''
 
 if __name__ == '__main__':
     main()

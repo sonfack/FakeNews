@@ -13,4 +13,7 @@ def bagOfWords(corpus):
     vectorizer = sklearn.feature_extraction.text.CountVectorizer(stop_words='english')
     return vectorizer.fit_transform(corpus).todense(), vectorizer.get_feature_names()
 
-#print(bagOfWords(corpus)[0])
+#vect, voc = bagOfWords(corpus)
+#print(vect)
+#print()
+#print(voc)
