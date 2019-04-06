@@ -12,7 +12,7 @@ from sklearn import tree
 from sklearn.metrics import confusion_matrix
 
 from src.bagOfWords import bagOfWords
-from src.dataManip import readNews, lemmatizeText, removeStopWord, getCVSHeaders, readFileSpecificColumn
+from src.dataManip import readNews, labelType, lemmatizeText, removeStopWord, getCVSHeaders, readFileSpecificColumn
 from src.tf_idf import tf_idf
 
 """
@@ -72,15 +72,6 @@ or political orientations.
 
 """
 
-
-def labelType(listType):
-    labelType = []
-    for i in range(len(listType)):
-        if str(listType[i]).lower() in ["fake", "satire", "unreliable", "conspiracy", "rumor"]:
-            labelType.append(0)
-        else:
-            labelType.append(1)
-    return labelType
 
 # Test Logistic regrestion
 def testLR(X, numberToTest, modelfile):
@@ -178,6 +169,7 @@ def decissionTree(X,y, extracteur):
 
 
 def main():
+    '''
     label = labelType(fakenews['type'])
 
     corpus = createCorpus()
@@ -235,7 +227,7 @@ def main():
     #readFileSpecificColumn(filecsv, 3)
     #print(vectorize.shape)
     #print(vectorize)
-    '''
+
 
 if __name__ == '__main__':
     main()

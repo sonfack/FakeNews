@@ -79,3 +79,17 @@ def readFileSpecificColumn(file, numberOfLines):
 
 
 #readFileSpecificColumn('../data/view.csv', 3)
+
+""""
+Labeling 
+Fake === 0 
+Not Fake === 1
+"""
+def labelType(listType):
+    labelType = []
+    for i in range(len(listType)):
+        if str(listType[i]).lower() in ["fake", "satire", "unreliable", "conspiracy", "rumor"]:
+            labelType.append(0)
+        else:
+            labelType.append(1)
+    return labelType
